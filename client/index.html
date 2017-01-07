@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html ng-app="surveyApp8">
+
+<head>
+    <meta charset="utf-8">
+    <title>Survey_8</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+    <script type="text/javascript" src="/angular/angular.js"></script>
+    <script type="text/javascript" src="/angular-route/angular-route.js"></script>
+
+    <script type="text/javascript">
+        var app = angular.module("surveyApp8", ["ngRoute"]);
+
+        app.config(function($routeProvider) {
+            $routeProvider
+                .when("/login", {
+                    templateUrl: "/partials/login.html"
+                })
+                .when("/dashboard", {
+                    templateUrl: "/partials/dashboard.html"
+                })
+                .when("/create", {
+                    templateUrl: "/partials/create.html"
+                })
+                .when("/surveys/:id", {
+                    templateUrl: "/partials/poll.html"
+                })
+        });
+
+        app.factory("survey8Factory", function($http){
+
+          var factory = { users : null, surveys: []};
+
+          factory.login = function(user, successfullyLoggedIn) {
+
+            $http.get("/users/" + user.username).then(function(response) {
+              console.log("This is response.data from server after http get request for users");
+              console.log(response.data);
+              factory.user = response.data.user;
+
+              if(factory.user === null) {
+                $http.post("/users", user).then(function(response) {
+                  console.log("This is the response(response.data) from server after http post (users) request ");
+                  console.log(response.data);
+                  factory.user = response.data.user;
+                  successfullyLoggedIn();
+                });
+              } else {
+                successfullyLoggedIn();
+              };
+            });
+          };
+
+          factory.surveysIndex = function(receivedSurveys) {
+            $http.get("/surveys").then(function(response) {
+              console.log("This is response.data from server after get all surveys request");
+              console.log(response.data);
+              factory.surveys = response.data.surveys;
+              receivedSurveys(response.data.surveys);
+            });
+          };
+
+
+          return factory;
+        });
+
+        app.controller("loginController", function($scope, $http, survey8Factory, $location) {
+          $scope.login = function(user) {
+            survey8Factory.login(user, function(){
+                                        $location.url("/dashboard");
+                                      });
+          };
+        });
+
+        app.controller("dashboardController", function($scope, survey8Factory, $http) {
+          $scope.loggedInUser = survey8Factory.user;
+          console.log("This is the loggedInUser details(dashboardController)");
+          console.log($scope.loggedInUser);
+          // $scope.surveys = survey8Factory.surveys;
+          // console.log("This is one users complete survey list");
+          // console.log($scope.surveys);
+
+          survey8Factory.surveysIndex(function(surveys) {
+                                        $scope.surveys = surveys;
+                                        console.log($scope.surveys);
+          });
+
+          console.log($scope.surveys);
+
+        $scope.delete = function(surveyId) {
+          // $http.delete("/surveys/" + surveyId, {surveyId: surveyId}).then(function(response) {
+          console.log(surveyId);
+          $http.delete(("/surveys/" + surveyId), {surveyId: surveyId}).then(function(response) {
+            if(response.data.removed){
+              $scope.surveys.splice(surveyId, 1);
+            }
+          });
+          // });
+        };
+
+        });
+
+        app.controller("createSurveyController", function($scope, $http, survey8Factory){
+          $scope.loggedInUser = survey8Factory.user;
+          $scope.createSurvey = function(survey){
+            console.log(survey);
+
+
+
+            options = [
+              {option : survey.opt1},
+              {option : survey.opt2},
+              {option : survey.opt3},
+              {option : survey.opt4},
+            ];
+            console.log(options);
+
+            survey.options=options;
+            survey._user = $scope.loggedInUser._id;
+            // $scope.survey.question = survey.question;
+            console.log(survey);
+
+
+            $http.post("/surveys", survey).then(function(response){
+              console.log("This is the response.data from server after creating a new user");
+              console.log(response.data);
+            });
+          };
+        });
+
+        app.controller("surveyController", function($scope, $routeParams, survey8Factory, $http){
+          $scope.loggedInUser = survey8Factory.user;
+          console.log($scope.loggedInUser);
+
+          // $scope.surveys = survey8Factory.surveys;
+
+          console.log("This is $routeParams.id");
+          console.log($routeParams.id);
+
+          console.log("This is surveys downloaded from the factory");
+          console.log(survey8Factory.surveys);
+
+          // console.log(survey8Factory.surveys);
+
+          for (var i=0; i< survey8Factory.surveys.length; i++){
+            console.log(i);
+            if($routeParams.id === survey8Factory.surveys[i]._id ){
+              $scope.survey = survey8Factory.surveys[i];
+              console.log($scope.survey);
+            };
+          };
+
+          $scope.vote = function(index) {
+            $http.put("/votes", {surveyId: $scope.survey._id, optionIndex: index}).then(function(response) {
+              $scope.survey = response.data.survey;
+            });
+          };
+
+
+        });
+
+
+    </script>
+
+</head>
+
+<body>
+
+    <div class="navbar navbar-default">
+        <div class="container">
+            <h3>This is Survey #8</h3>
+        </div>
+    </div>
+
+    <div ng-view=""></div>
+
+</body>
+
+</html>

@@ -1,0 +1,25 @@
+<div class="container" ng-controller="dashboardController">
+<h3>{{loggedInUser.username}}'s Page</h3>
+
+<table class="table table-striped">
+  <caption>Current Polls:</caption>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Survey Question</th>
+      <th>Date Posted</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr ng-repeat = "x in surveys">
+      <td>{{x._user.username}}</td>
+      <td><a href="/#!/surveys/{{x._id}}">{{x.question}}</a></td>
+      <td>{{x.createdAt | date: 'MMMM dd yyyy'}}</td>
+      <td><button type="button" class="btn btn-danger" ng-click="delete(x._id)" name="button">Delete</button></td>
+    </tr>
+  </tbody>
+
+</table>
+
+</div>

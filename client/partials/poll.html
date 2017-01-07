@@ -1,0 +1,24 @@
+<div class="container" ng-controller="surveyController">
+<h3>survey.question</h3>
+Click the Vote button to choose one.
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>Current Count of Votes</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr ng-repeat="x in survey.options">
+      <th>{{x.option}}</th>
+      <th>{{x.votes}}</th>
+      <th><button class="btn btn-default" type="button" name="button" ng-click="vote($index)">Vote</button></th>
+    </tr>
+  </tbody>
+</table>
+
+
+</div>
